@@ -11,7 +11,11 @@ import {
 import { env } from './config/env'
 import { subscribeEventsRoute } from './routes/events.route'
 
-const app = fastify().withTypeProvider<ZodTypeProvider>()
+const app = fastify({
+    logger: {
+        level: 'info',
+    },
+}).withTypeProvider<ZodTypeProvider>()
 
 app.setSerializerCompiler(serializerCompiler)
 app.setValidatorCompiler(validatorCompiler)
@@ -21,8 +25,8 @@ app.register(fastifyCors)
 app.register(fastifySwagger, {
     openapi: {
         info: {
-            title: 'Subscriptions API',
-            version: '1.0.0',
+            title: 'NLW Connect',
+            version: '0.0.1',
         },
     },
     transform: jsonSchemaTransform,

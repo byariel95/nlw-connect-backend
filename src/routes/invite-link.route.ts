@@ -1,23 +1,21 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { subscribeToEvent } from '../functions/subscribe-to-events'
+import { env } from '../config/env'
+import { accessInviteLink } from '../functions/access-invite-link'
 
 export const subscribeEventsRoute: FastifyPluginAsyncZod = async app => {
     app.post(
-        '/subcriptions',
+        '/invites/:subscriberId',
         {
             schema: {
-                summary: 'Subscribe to events',
-                tags: ['subscriptions'],
+                summary: 'Access the invite link',
+                tags: ['Referal'],
                 description: 'Subscribes a user to events',
-                //params: {},
+                params: z.object({ subscriberId: z.string() }),
                 //headers: {},
                 //querystring: {},
                 //preValidation: [],
-                body: z.object({
-                    name: z.string().min(3),
-                    email: z.string().email(),
-                }),
+
                 response: {
                     201: z.object({
                         subcriberId: z.string(),
@@ -29,9 +27,12 @@ export const subscribeEventsRoute: FastifyPluginAsyncZod = async app => {
             },
         },
         async (request, reply) => {
-            const { name, email } = request.body
-            const { subcriberId } = await subscribeToEvent({ name, email })
-            reply.status(201).send({ subcriberId })
+            const { subscriberId } = request.params
+            await accessInviteLink({ subscriberId })
+            const redirectUrl = new URL(env.WEB_URL)
+            redirectUrl.searchParams.set('referrer', subscriberId)
+
+            return reply.redirect(redirectUrl.toString(), 302)
         }
     )
 }
