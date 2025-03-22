@@ -3,8 +3,8 @@ import z from 'zod'
 import { env } from '../config/env'
 import { accessInviteLink } from '../functions/access-invite-link'
 
-export const subscribeEventsRoute: FastifyPluginAsyncZod = async app => {
-    app.post(
+export const accessInviteLinkRoute: FastifyPluginAsyncZod = async app => {
+    app.get(
         '/invites/:subscriberId',
         {
             schema: {
@@ -17,9 +17,7 @@ export const subscribeEventsRoute: FastifyPluginAsyncZod = async app => {
                 //preValidation: [],
 
                 response: {
-                    201: z.object({
-                        subcriberId: z.string(),
-                    }),
+                    302: z.null(),
                     500: z.object({
                         message: z.string(),
                     }),
@@ -31,7 +29,6 @@ export const subscribeEventsRoute: FastifyPluginAsyncZod = async app => {
             await accessInviteLink({ subscriberId })
             const redirectUrl = new URL(env.WEB_URL)
             redirectUrl.searchParams.set('referrer', subscriberId)
-
             return reply.redirect(redirectUrl.toString(), 302)
         }
     )

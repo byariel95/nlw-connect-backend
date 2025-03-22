@@ -1,6 +1,7 @@
 import fastifyCors from '@fastify/cors'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
+import fastifyRequestLogger from '@mgcrea/fastify-request-logger'
 import { fastify } from 'fastify'
 import {
     type ZodTypeProvider,
@@ -9,12 +10,17 @@ import {
     validatorCompiler,
 } from 'fastify-type-provider-zod'
 import { env } from './config/env'
-import { subscribeEventsRoute } from './routes/events.route'
+import { accessInviteLinkRoute, getSubscriberInviteClicksRoute, subscribeEventsRoute } from './routes'
 
 const app = fastify({
     logger: {
-        level: 'info',
+        level: 'debug',
+        transport: {
+            target: '@mgcrea/pino-pretty-compact',
+            options: { translateTime: 'HH:MM:ss Z', ignore: 'pid,hostname' },
+        },
     },
+    disableRequestLogging: true,
 }).withTypeProvider<ZodTypeProvider>()
 
 app.setSerializerCompiler(serializerCompiler)
@@ -36,7 +42,11 @@ app.register(fastifySwaggerUi, {
     routePrefix: '/docs',
 })
 
+app.register(fastifyRequestLogger)
+
 app.register(subscribeEventsRoute)
+app.register(accessInviteLinkRoute)
+app.register(getSubscriberInviteClicksRoute)
 
 app.listen({
     port: env.PORT,
